@@ -2,7 +2,7 @@ from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, filters, CallbackContext, \
     Application, ContextTypes, Defaults
 from texts import hello_message, instructions_dict, instruction_text, buttons, handle_photo_thanks_text, \
-    handle_photo_all_letters, handle_photo_wrong_photo, notification_text, wrong_time, news_letter
+    handle_photo_all_letters, handle_photo_wrong_photo, notification_text, wrong_time, TOKEN
 import random
 import pandas as pd
 import numpy as np
@@ -10,27 +10,24 @@ from datetime import time, timedelta, datetime, timezone
 import logging
 import os
 
-USER_DATA_PATH = "/data/users_data.csv" if "AMVERA" in os.environ else "users_data.csv"
-LOGG_PATH = "/data/temp.log" if "AMVERA" in os.environ else "temp.log"
+USER_DATA_PATH = "/data/users_data.csv" if "AMVERA" in os.environ else "users_data.csv" # Путь до файла с пользовательской информацией
 
-# Enable logging
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
                     level=logging.INFO,
-                    filename=LOGG_PATH
-                    )
-
-# set higher logging level for httpx to avoid all GET and POST requests being logged
+                    filename='temp.log'
+                    ) # Настроенное логгирование
 logging.getLogger("httpx").setLevel(logging.WARNING)
-
 logger = logging.getLogger(__name__)
 
 waiting_for_photo = False
 moscow_tz = timezone(offset=timedelta(hours=3), name='UTC+3')
-dactyl = ["А", "Б", "В", "Г", "Е",
-          "Ж", "И", "К", "Л", "М",
-          "Н", "О", "П", "Р", "С",
-          "Т", "У", "Ф", "Х", "Ч",
-          "Ш", "Ы", "Э", "Ю", "Я"]
+
+dactyl = ["А", "Б", "В", "Г", "Д", "Е",
+          "Ё", "Ж", "З", "И", "Й", "К",
+          "Л", "М", "Н", "О", "П", "Р",
+          "С", "Т", "У", "Ф", "Х", "Ц",
+          "Ч", "Ш", "Щ", "Ъ", "Ы", "Ь",
+          "Э", "Ю", "Я"] # Используемый дактильный алфавит из 25 букв
 
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -44,7 +41,7 @@ async def start(update: Update, context: CallbackContext) -> None:
     Returns:
         None
     """
-    logging.info(f"User {update.effective_chat.id} is started conversation.") # все ок
+    logging.info(f"User {update.effective_chat.id} is started conversation.")
 
     keyboard = [[KeyboardButton(buttons['send_photo']),
                  KeyboardButton(buttons['get_instructions'])]]
@@ -68,21 +65,21 @@ def get_info(chat_id):
     current_sign = random.choice(dactyl)
     current_user = user_data[user_data['chat_id'] == chat_id]
 
-    if chat_id in user_data['chat_id'].to_list():
-        logging.info(f"The {chat_id} is an old user.")
+    if chat_id in user_data['chat_id'].to_list(): # если это старый пользователь
+        logging.info(f"The {current_user} is an old user.")
         if not user_data[user_data['chat_id'] == chat_id].current_symbol.isna().all():
-            logging.info(f"The {chat_id} already has a letter.")
+            logging.info(f"The {current_user} already has a letter.")
             current_sign = ''.join(current_user.current_symbol.values)
-        else:
-            logging.info(f"The {chat_id} do not has a letter.")
+        else: # если у пользователя нет текущей буквы, присваиваем ее ему.
+            logging.info(f"The {current_user} do not has a letter.")
             user_data.loc[user_data['chat_id'] == chat_id, 'current_symbol'] = current_sign
 
-    else:
-        logging.info(f"The {chat_id} is a new user.")
+    else: # если пользователь новый
+        logging.info(f"The {current_user} is a new user.")
         new_row = pd.DataFrame([[chat_id, current_sign, list(), int(0)]],
-                               columns=["chat_id", 'current_symbol', 'sended_symbols', 'sended_coeff'])
+                               columns=["chat_id", 'current_symbol', 'sended_symbols', 'sended_coeff']) # создаем ему уникальную строчку в таблице
         user_data = pd.concat([user_data, new_row], ignore_index=True)
-        logging.info(f"List of current_users: \n {user_data}")
+        logging.info(user_data)
 
     user_data.to_csv(USER_DATA_PATH, index=False, header=True)
     return current_sign
@@ -105,7 +102,7 @@ async def send_instructions(update: Update, context: CallbackContext) -> None:
 
 async def button_click(update: Update, context: CallbackContext) -> None:
     """
-    Handle the 'Send Photo' button.
+    Handle the 'Отправить фото' button.
 
     Args:
         update (telegram.Update): The update object containing information about the incoming message.
@@ -119,7 +116,7 @@ async def button_click(update: Update, context: CallbackContext) -> None:
     current_sign = get_info(chat_id)
 
     if buttons['send_photo'] in update.message.text:
-        waiting_for_photo = True
+        waiting_for_photo = True # флаг, что ждем фото от пользователя
 
         message_text = (
             f"Вам попалась буква {current_sign}! "
@@ -143,7 +140,7 @@ async def handle_photo(update: Update, context: CallbackContext) -> None:
     Returns:
         None
     """
-    logging.info(f"Function handle_photo is started by user {update.effective_chat.id}")
+    logging.info("function handle_photo is started")
 
     global waiting_for_photo
 
@@ -151,16 +148,15 @@ async def handle_photo(update: Update, context: CallbackContext) -> None:
     users_data = pd.read_csv(USER_DATA_PATH, sep=',', converters={'sended_symbols': pd.eval})
     current_user = users_data[users_data["chat_id"] == user_id]
 
-    if waiting_for_photo:
-        if update.message.photo:
+    if waiting_for_photo: # если пользователь воспользовался кнопкой "Отправить фото"
+        if update.message.photo: # если пользователь отправил в ответ фото
             user_photo = update.message.photo[-1]
             file_id = user_photo.file_id
             new_file = await context.bot.get_file(file_id)
             current_sign = current_user['current_symbol'].values[0]
 
-            path = f"/data/users_photo/{current_sign}/{user_id}_{file_id}.jpg" if "AMVERA" in os.environ \
-                else f"users_photo/{current_sign}/{user_id}_{file_id}.jpg"
-            await new_file.download_to_drive(custom_path=path)
+            path = f"/data/users_photo/{current_sign}/{user_id}_{file_id}.jpg" if "AMVERA" in os.environ else f"users_photo/{current_sign}/{user_id}_{file_id}.jpg"
+            await new_file.download_to_drive(custom_path=path) # сохраняем присланное фото
 
             await update.message.reply_text(handle_photo_thanks_text)
 
@@ -168,7 +164,7 @@ async def handle_photo(update: Update, context: CallbackContext) -> None:
             user_sended_signs.append(*current_sign)
             users_data.loc[users_data['chat_id'] == user_id, 'sended_symbols'].values[0] = user_sended_signs
 
-            # Пользователь отправил все символы
+            # Пользователь отправил все 25 символов
             if len(dactyl) == len(user_sended_signs):
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=handle_photo_all_letters)
 
@@ -193,9 +189,6 @@ async def handle_photo(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text(handle_photo_wrong_photo)
 
     users_data.to_csv(USER_DATA_PATH, index=False, header=True)
-
-
-start_notification_text = "Отлично! Теперь вы будете ежедневно получать напоминания"
 
 
 async def send_notification(context: CallbackContext) -> None:
@@ -252,36 +245,13 @@ async def post_init(application: Application) -> None:
                                            ('set', 'Установить напоминание'),
                                            ('unset', 'Удалить напоминание')])
 
-
-async def secret_command(update: Update, context: CallbackContext) -> None:
-    """
-    Handle the /start command.
-
-    Args:
-        update (telegram.Update): The update object containing information about the incoming message.
-        context (telegram.ext.CallbackContext): The context object for the current update.
-
-    Returns:
-        None
-    """
-    logging.info(f"News letter sended.")
-    users_data = pd.read_csv(USER_DATA_PATH, sep=',',
-                             converters={'sended_symbols': pd.eval})
-    users_id = [int(i) for i in users_data['chat_id'].values]
-
-    for chat_id in users_id:
-        await context.bot.send_message(chat_id=chat_id,
-                                       text=news_letter)
-
-
 def main():
     defaults = Defaults(tzinfo=moscow_tz)
 
-    application = Application.builder().token("6758202098:AAFQG4vmIRHIU0Q5zxiZUfe5w6Jx70KFc6U").post_init(
+    application = Application.builder().token(TOKEN).post_init(
         post_init).defaults(defaults).build()
 
     application.add_handler(CommandHandler(["start", "help"], start))
-    application.add_handler(CommandHandler(["secret_command"], secret_command))
 
     application.add_handler(MessageHandler(filters.Regex(r'Отправить фото'), button_click))
     application.add_handler(MessageHandler(filters.Regex(r'Получить инструкции'), send_instructions))

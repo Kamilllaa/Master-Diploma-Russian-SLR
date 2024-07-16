@@ -1,0 +1,64 @@
+2024-03-04 14:28:00,286 - INFO - Scheduler started
+2024-03-04 14:28:00,286 - INFO - Application started
+2024-03-04 14:28:06,165 - INFO - User 881416533 is started conversation.
+2024-03-04 14:28:24,328 - ERROR - No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/telegram/ext/_application.py", line 1264, in process_update
+    await coroutine
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py", line 157, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamilla/Desktop/amv_bot/bot.py", line 119, in button_click
+    current_sign = get_info(chat_id)
+                   ^^^^^^^^^^^^^^^^^
+  File "/Users/kamilla/Desktop/amv_bot/bot.py", line 67, in get_info
+    user_data = pd.read_csv(USER_DATA_PATH, sep=',', converters={'sended_symbols': pd.eval})
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/pandas/io/parsers/readers.py", line 1024, in read_csv
+    return _read(filepath_or_buffer, kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/pandas/io/parsers/readers.py", line 618, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/pandas/io/parsers/readers.py", line 1618, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/pandas/io/parsers/readers.py", line 1878, in _make_engine
+    self.handles = get_handle(
+                   ^^^^^^^^^^^
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/pandas/io/common.py", line 873, in get_handle
+    handle = open(
+             ^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'users_data.csv'
+2024-03-04 14:29:11,078 - INFO - Scheduler started
+2024-03-04 14:29:11,078 - INFO - Application started
+2024-03-04 14:29:13,535 - INFO - The      chat_id current_symbol sended_symbols  sended_coeff
+1  881416533              Ё         [Ц, Щ]           0.0 is an old user.
+2024-03-04 14:29:13,539 - INFO - The      chat_id current_symbol sended_symbols  sended_coeff
+1  881416533              Ё         [Ц, Щ]           0.0 already has a letter.
+2024-03-04 14:29:25,851 - INFO - function handle_photo is started
+2024-03-04 14:29:28,052 - ERROR - No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/telegram/ext/_application.py", line 1264, in process_update
+    await coroutine
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/telegram/ext/_handlers/basehandler.py", line 157, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamilla/Desktop/amv_bot/bot.py", line 162, in handle_photo
+    await new_file.download_to_drive(custom_path=path)
+  File "/Users/kamilla/Desktop/amv_bot/venv/lib/python3.11/site-packages/telegram/_files/file.py", line 215, in download_to_drive
+    filename.write_bytes(buf)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/pathlib.py", line 1067, in write_bytes
+    with self.open(mode='wb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/pathlib.py", line 1044, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'users_photo/Ё/881416533_AgACAgIAAxkBAAIGBGXlooWOrlj1-fx5NhlsaisFy4gcAAJX2DEb9swpSyMQ2LsmIkjYAQADAgADeQADNAQ.jpg'
+2024-03-04 14:30:59,758 - INFO - Scheduler started
+2024-03-04 14:30:59,758 - INFO - Application started
+2024-03-04 14:31:01,521 - INFO - The      chat_id current_symbol sended_symbols  sended_coeff
+1  881416533              Ё         [Ц, Щ]           0.0 is an old user.
+2024-03-04 14:31:01,525 - INFO - The      chat_id current_symbol sended_symbols  sended_coeff
+1  881416533              Ё         [Ц, Щ]           0.0 already has a letter.
+2024-03-04 14:31:15,276 - INFO - function handle_photo is started
